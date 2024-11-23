@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results Portal</title>
+    <style>
+        /* Existing styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            background: #1e1e2f;
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            opacity: 0;
+            animation: fadeIn 3s forwards;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            z-index: 10;
+            position: relative;
+            opacity: 0;
+            animation: fadeIn 3s forwards 0.5s;
+        }
+
+        h1 {
+            color: red;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+            animation: blink 1s infinite;
+        }
+
+        .subheading {
+            color: #00f2fe;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+            color: #f0f0f0;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #2a2a3a;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #00f2fe;
+            background: #1a1a2f;
+        }
+
+        button {
+            background-color: #00f2fe;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #00b8d8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #result-display {
+            margin-top: 20px;
+            color: #f0f0f0;
+            text-align: left;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th, table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            color: #fff;
+        }
+
+        table th {
+            background-color: #00f2fe;
+            color: #000;
+        }
+
+        /* Animations */
+        @keyframes gradient {
+            0% {
+                background: #1e1e2f;
+            }
+            50% {
+                background: #ff007f;
+            }
+            100% {
+                background: #1e1e2f;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes blink {
+            0% { color: red; }
+            50% { color: white; }
+            100% { color: black; }
+        }
+
+        @keyframes typewriter {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+
+        #loading {
+            font-size: 1.2rem;
+            color: #f0f0f0;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 2px solid #f0f0f0;
+            width: 0;
+            animation: typewriter 2s steps(25) 1s forwards, blink 0.7s step-end infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>IA Results Portal</h1>
+        <div class="subheading">GEC HOOVINAHADAGALI</div>
+        <div class="subheading">CSE BRANCH</div>
+        <form id="result-form">
+            <label for="usn">Enter Your USN:</label>
+            <input type="text" id="usn" placeholder="e.g., 1GA19CS001" required>
+            <label for="subject">Select Subject:</label>
+            <select id="subject" required>
+                <option value="">-- Select Subject --</option>
+                <option value="mathematics">Mathematics for Engineering</option>
+                <option value="ddco">DDCO</option>
+                <option value="os">Operating System</option>
+                <option value="ds">Data Structures</option>
+                <option value="oop">OOP With JAVA</option>
+            </select>
+            <button type="submit">View Results</button>
+        </form>
+        <div id="loading" class="hidden">Fetching Results...</div>
+        <div id="result-display" class="hidden">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Marks</th>
+                    </tr>
+                </thead>
+                <tbody id="result-details"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        document.getElementById("result-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const usn = document.getElementById("usn").value.toUpperCase();
+            const subject = document.getElementById("subject").value;
+            const loading = document.getElementById("loading");
+            const resultDisplay = document.getElementById("result-display");
+            const resultDetails = document.getElementById("result-details");
+
+            // Show the loading animation
+            loading.classList.remove("hidden");
+            resultDisplay.classList.add("hidden");
+
+            setTimeout(() => {
+                // Hardcoded results for demonstration
+                const results = {
+                    "2GB22CS042": {
+                        "name": "SHREE LAXMI",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "5/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "AB"
+                        }
+                    },
+                    "2GB23CS001": {
+                        "name": "ABHILASH B",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "1/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "08/25"
+                        }
+                    },
+                    "2GB23CS002": {
+                        "name": "ABHISHEK",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "7/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "7/25"
+                        }
+                    },
+                      "2GB23CS003": {
+                        "name": "AJAY S D",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "18/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "5/25"
+                        }
+                    },
+  "2GB23CS004": {
+                        "name": "AKASHKUMARA A S",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "10/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "1/25"
+                        }
+                    },
+  "2GB23CS005": {
+                        "name": "AMIT",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "23/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "19/25"
+                        }
+                    },
+  "2GB23CS006": {
+                        "name": "ARCHANA G",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "6/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "9/25"
+                        }
+                    },
+  "2GB23CS007": {
+                        "name": "ARJUN ANKALAGI",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "0/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "6/25"
+                        }
+                    },
+  "2GB23CS008": {
+                        "name": "BASAVANGOUDA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "10/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "7/25"
+                        }
+                    },
+  "2GB23CS009": {
+                        "name": "BHOOMIKA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "21/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "14/25"
+                        }
+                    },
+  "2GB23CS010": {
+                        "name": "CHAITRA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "9/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "22/25"
+                        }
+                    },
+                      "2GB23CS011": {
+                        "name": "CHANDAN",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "9/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "18/25"
+                        }
+                    },
+  "2GB23CS012": {
+                        "name": "CHITTI",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "10/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "20/25"
+                        }
+                    },
+  "2GB23CS013": {
+                        "name": "DEEPA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "10/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "14/25"
+                        }
+                    },
+  "2GB23CS014": {
+                        "name": "DEEPA D N",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "AB",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "AB"
+                        }
+                    },
+  "2GB23CS015": {
+                        "name": "G O KRUTHIKA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "7/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "9/25"
+                        }
+                    },
+  "2GB23CS016": {
+                        "name": "GIRISH G",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "18/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "23/25"
+                        }
+                    },
+  "2GB23CS017": {
+                        "name": "HANUMESH NAYAK",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "7/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "17/25"
+                        }
+                    },
+  "2GB23CS018": {
+                        "name": "KAVITA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "9/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "20/25"
+                        }
+                    },
+  "2GB23CS019": {
+                        "name": "KEERTHANA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "1/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "14/25"
+                        }
+                    },
+  "2GB23CS021": {
+                        "name": "KOTESH",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "6/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "14/25"
+                        }
+                    },
+  "2GB23CS022": {
+                        "name": "LAXMI LACHYAN",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "10/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "10/25"
+                        }
+                    },
+  "2GB23CS024": {
+                        "name": "MAHESH KUMAR M",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "10/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "17/25"
+                        }
+                    },
+  "2GB23CS025": {
+                        "name": "MALA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "12/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "4/25"
+                        }
+                    },
+  "2GB23CS026": {
+                        "name": "MANASA B",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "14/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "14/25"
+                        }
+                    },
+  "2GB23CS027": {
+                        "name": "MANASA P",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "22/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "14/25"
+                        }
+                    },
+  "2GB23CS028": {
+                        "name": "MANOJ KUMAR",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "17/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "13/25"
+                        }
+                    },
+  "2GB23CS029": {
+                        "name": "MEGHA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "8/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "9/25"
+                        }
+                    },
+  "2GB23CS030": {
+                        "name": "MONIKA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "7/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "2/25"
+                        }
+                    },
+  "2GB23CS031": {
+                        "name": "OM PRASAD",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "3/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "1/25"
+                        }
+                    },
+  "2GB23CS032": {
+                        "name": "POOJA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "9/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "14/25"
+                        }
+                    },
+  "2GB23CS033": {
+                        "name": "PRADEEP",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "4/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "12/25"
+                        }
+                    },
+  "2GB23CS035": {
+                        "name": "RAGHAVENDRA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "4/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "10/25"
+                        }
+                    },
+  "2GB23CS036": {
+                        "name": "RAMANAGOUDA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "1/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "10/25"
+                        }
+                    },
+  "2GB23CS037": {
+                        "name": "RANJITA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "18/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "15/25"
+                        }
+                    },
+  "2GB23CS038": {
+                        "name": "ROOPA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "9/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "13/25"
+                        }
+                    },
+  "2GB23CS039": {
+                        "name": "SAGAR ZINGADE",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "18/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "19/25"
+                        }
+                    },
+  "2GB23CS040": {
+                        "name": "SAHANA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "12/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "13/25"
+                        }
+                    },
+  "2GB23CS041": {
+                        "name": "SAVATA LAMBANI",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "0/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "12/25"
+                        }
+                    },
+  "2GB23CS042": {
+                        "name": "SHIVARAJ",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "0/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "4/25"
+                        }
+                    },
+  "2GB23CS043": {
+                        "name": "SHRADHA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "0/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "5/25"
+                        }
+                    },
+  "2GB23CS044": {
+                        "name": "SIDDARAM",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "18/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "07/25"
+                        }
+                    },
+  "2GB23CS045": {
+                        "name": "SINDHU P",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "16/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "16/25"
+                        }
+                    },
+  "2GB23CS046": {
+                        "name": "SNEHA M N",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "17/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "14/25"
+                        }
+                    },
+  "2GB23CS047": {
+                        "name": "SOUJANYA B G",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "10/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "12/25"
+                        }
+                    },
+  "2GB23CS048": {
+                        "name": "SOUJANYA H G",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "19/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "11/25"
+                        }
+                    },
+  "2GB23CS049": {
+                        "name": "SUDHANVA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "6/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "3/25"
+                        }
+                    },
+  "2GB23CS050": {
+                        "name": "TANUJA P S",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "9/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "10/25"
+                        }
+                    },
+                      "2GB23CS051": {
+                        "name": "UDAYKUMAR",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "4/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "3/25"
+                        }
+                    },
+  "2GB23CS052": {
+                        "name": "USHA G",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "4/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "15/25"
+                        }
+                    },
+  "2GB23CS053": {
+                        "name": "VAISHNAVI",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "1/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "5/25"
+                        }
+                    },
+  "2GB23CS054": {
+                        "name": "VARSHA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "17/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "15/25"
+                        }
+                    },
+  "2GB23CS055": {
+                        "name": "VASANTI",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "15/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "16/25"
+                        }
+                    },
+  "2GB23CS056": {
+                        "name": "VIDYASHREE",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "1/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "11/25"
+                        }
+                    },
+  "2GB23CS057": {
+                        "name": "VIKAS N S",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "13/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "10/25"
+                        }
+                    },
+  "2GB23CS058": {
+                        "name": "VISHAL",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "6/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "7/25"
+                        }
+                    },
+  "2GB24CS400": {
+                        "name": "AKASH M P",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "7/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "4/25"
+                        }
+                    },
+ "2GB24CS401": {
+                        "name": "GOUDRA VEERENDRA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "3/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "22/25"
+                        }
+                    },
+                    
+ "2GB24CS402": {
+                        "name": "JAVED AHMED",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "12/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "17/25"
+                        }
+                    },
+ "2GB24CS403": {
+                        "name": "KAVANA S G",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "16/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "6/25"
+                        }
+                    },
+ "2GB24CS404": {
+                        "name": "B M MANOJA",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "7/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "7/25"
+                        }
+                    },
+ "2GB24CS405": {
+                        "name": "NAGEENA BEGUM",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "8/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "13/25"
+                        }
+                    },
+ "2GB24CS406": {
+                        "name": "PARIKSHIT Y M",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "11/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "18/25"
+                        }
+                    },
+ "2GB24CS407": {
+                        "name": "RESHMA BEGUM",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "20/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "13/25"
+                        }
+                    },
+ "2GB24CS408": {
+                        "name": "SUMITH S POOJARI",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "3/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "10/25"
+                        }
+                    },
+ "2GB24CS409": {
+                        "name": "VEERESH P GOUDAR",
+                        "marks": {
+                            "mathematics": "NOT UPDATED",
+                            "ddco": "0/25",
+                            "os": "NOT UPDATED",
+                            "ds": "NOT UPDATED",
+                            "oop": "11/25"
+                        }
+                    },
+                };
+
+                resultDetails.innerHTML = ""; // Clear previous results
+
+                if (results[usn] && results[usn].marks[subject]) {
+                    const row = `<tr>
+                        <td>${results[usn].name}</td>
+                        <td>${subject.replace(/([A-Z])/g, ' $1').trim()}</td>
+                        <td>${results[usn].marks[subject]}</td>
+                    </tr>`;
+                    resultDetails.innerHTML = row;
+                } else if (results[usn]) {
+                    resultDetails.innerHTML = `<tr><td colspan="3">Please select a valid subject.</td></tr>`;
+                } else {
+                    resultDetails.innerHTML = `<tr><td colspan="3">No results found for the entered USN.</td></tr>`;
+                }
+
+                // Hide the loading animation and show the results
+                loading.classList.add("hidden");
+                resultDisplay.classList.remove("hidden");
+            }, 3000); // Simulated delay for the typewriter effect
+        });
+    </script>
+</body>
+</html>
